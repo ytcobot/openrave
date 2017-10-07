@@ -181,6 +181,12 @@ if sympy_version < '0.7.0':
     raise ImportError('ikfast needs sympy 0.7.x or greater')
 sympy_smaller_073 = sympy_version < '0.7.3'
 
+if sympy_version >= '1.0':
+    def sympyzeros(shape):
+        return zeros(*shape)
+else:
+    sympyzeros = zeros
+
 __author__ = 'Rosen Diankov'
 __copyright__ = 'Copyright (C) 2009-2012 Rosen Diankov <rosen.diankov@gmail.com>'
 __license__ = 'Lesser GPL, Version 3'
@@ -281,12 +287,12 @@ CodeGenerators = {}
 #     CodeGenerators['vb6special'] = ikfast_generator_vb.CodeGeneratorVB6Special
 # except ImportError:
 #     pass
-try:
-    import ikfast_generator_cpp
-    CodeGenerators['cpp'] = ikfast_generator_cpp.CodeGenerator
-    IkType = ikfast_generator_cpp.IkType
-except ImportError:
-    pass
+#try:
+from . import ikfast_generator_cpp
+CodeGenerators['cpp'] = ikfast_generator_cpp.CodeGenerator
+IkType = ikfast_generator_cpp.IkType
+#except ImportError:
+#    pass
 
 # changes to sympy:
 
@@ -1324,7 +1330,7 @@ class IKFastSolver(AutoReloader):
         __slots__ = ['joint','iaxis']
 
     class Variable:
-        __slots__ = ['var','svar','cvar','tvar','htvar']
+        __slots__ = ['name','var','svar','cvar','tvar','htvar','vars','subs','subsinv']
         def __init__(self, var):
             self.name = var.name
             self.var = var
@@ -2384,7 +2390,7 @@ class IKFastSolver(AutoReloader):
         Links = LinksRaw[:]
         LinksInv = [self.affineInverse(link) for link in Links]
         T = self.multiplyMatrix(Links)
-        self.Tfinal = zeros((4,4))
+        self.Tfinal = sympyzeros((4,4))
         self.Tfinal[0,0:3] = (T[0:3,0:3]*manipdir).transpose()
         self.testconsistentvalues = self.ComputeConsistentValues(jointvars,self.Tfinal,numsolutions=4)
         endbranchtree = [AST.SolverStoreSolution(jointvars,isHinge=[self.IsHinge(var.name) for var in jointvars])]
@@ -2427,7 +2433,7 @@ class IKFastSolver(AutoReloader):
         Links = LinksRaw[:]
         LinksInv = [self.affineInverse(link) for link in Links]
         T = self.multiplyMatrix(Links)
-        self.Tfinal = zeros((4,4))
+        self.Tfinal = sympyzeros((4,4))
         self.Tfinal[0,0:3] = (T[0:3,0:3]*manipdir).transpose()
         self.Tfinal[0:3,3] = T[0:3,0:3]*manippos+T[0:3,3]
         self.testconsistentvalues = self.ComputeConsistentValues(jointvars,self.Tfinal,numsolutions=4)
@@ -2568,7 +2574,7 @@ class IKFastSolver(AutoReloader):
                 # more than 2 variables is almost always useless
                 break
         if len(Positions) == 0:
-            Positions.append(zeros((2,1)))
+            Positions.append(sympyzeros((2,1)))
             Positionsee.append(self.multiplyMatrix(T1links)[0:2,3])
         AllEquations = self.buildEquationsFromTwoSides(Positions,Positionsee,solvejointvars+self.freejointvars,uselength=True)
 
@@ -2595,7 +2601,7 @@ class IKFastSolver(AutoReloader):
         Links = LinksRaw[:]
         LinksInv = [self.affineInverse(link) for link in Links]
         T = self.multiplyMatrix(Links)
-        self.Tfinal = zeros((4,4))
+        self.Tfinal = sympyzeros((4,4))
         self.Tfinal[0,0:3] = (T[0:3,0:3]*manipdir).transpose()
         self.Tfinal[0:3,3] = T[0:3,0:3]*manippos+T[0:3,3]
         self.testconsistentvalues = self.ComputeConsistentValues(jointvars,self.Tfinal,numsolutions=4)
@@ -2699,7 +2705,7 @@ class IKFastSolver(AutoReloader):
 
         LinksInv = [self.affineInverse(link) for link in Links]
         T = self.multiplyMatrix(Links)
-        self.Tfinal = zeros((4,4))
+        self.Tfinal = sympyzeros((4,4))
         self.Tfinal[0,0:3] = (T[0:3,0:3]*manipdir).transpose()
         self.Tfinal[0:3,3] = T[0:3,0:3]*manippos+T[0:3,3]
         self.testconsistentvalues = self.ComputeConsistentValues(jointvars,self.Tfinal,numsolutions=4)
@@ -2917,7 +2923,7 @@ class IKFastSolver(AutoReloader):
         if tree is None:
             sliderjointvars = [var for var in solvejointvars if not self.IsHinge(var.name)]
             if len(sliderjointvars) > 0:
-                ZeroMatrix = zeros(4)
+                ZeroMatrix = sympyzeros(4)
                 for i,Tlink in enumerate(Links):
                     if self.has(Tlink,*sliderjointvars):
                         # try sliding left
@@ -3186,7 +3192,7 @@ class IKFastSolver(AutoReloader):
             for tvar in transvars:
                 solvedvarsubs += self.Variable(tvar).subs
 
-        Ree = zeros((3,3))
+        Ree = sympyzeros((3,3))
         for i in range(3):
             for j in range(3):
                 Ree[i,j] = Symbol('new_r%d%d'%(i,j))
@@ -3373,7 +3379,7 @@ class IKFastSolver(AutoReloader):
         
         LinksInv = [self.affineInverse(link) for link in Links]
         Tallmult = self.multiplyMatrix(Links)
-        self.Tfinal = zeros((4,4))
+        self.Tfinal = sympyzeros((4,4))
         if globalnormaldir is None:
             self.Tfinal[0,0] = acos(globaldir.dot(Tallmult[0:3,0:3]*manipdir))
         else:
@@ -3673,7 +3679,7 @@ class IKFastSolver(AutoReloader):
                 # more than 2 variables is almost always useless
                 break
         if len(Positions) == 0:
-            Positions.append(zeros((len(indices),1)))
+            Positions.append(sympyzeros((len(indices),1)))
             Positionsee.append(self.multiplyMatrix(T1links).extract(indices,[3]))
         if removesmallnumbers:
             for i in range(len(Positions)):
@@ -3957,7 +3963,7 @@ class IKFastSolver(AutoReloader):
         leftsideeqs = [leftsideeqs[ileft] for rank,ileft,coeffs in systemcoeffs]
         rightsideeqs = [rightsideeqs[ileft] for rank,ileft,coeffs in systemcoeffs]
 
-        A = zeros((len(allmonomsleft),len(allmonomsleft)))
+        A = sympyzeros((len(allmonomsleft),len(allmonomsleft)))
         Asymbols = []
         for i in range(A.shape[0]):
             Asymbols.append([Symbol('gconst%d_%d'%(i,j)) for j in range(A.shape[1])])
@@ -4804,16 +4810,16 @@ class IKFastSolver(AutoReloader):
             complexity = [(self.codeComplexity(peq[0].as_expr()),peq) for peq in neweqs_test]
             complexity.sort(key=itemgetter(0))
             neweqs_test = [peq for c,peq in complexity]
-            A = zeros((len(neweqs_test),len(allmonoms)))
-            B = zeros((len(neweqs_test),1))
+            A = sympyzeros((len(neweqs_test),len(allmonoms)))
+            B = sympyzeros((len(neweqs_test),1))
             for ipeq,peq in enumerate(neweqs_test):
                 for m,c in peq[0].terms():
                     A[ipeq,allmonoms.index(m)] = c.subs(self.freevarsubs)
                 B[ipeq] = peq[1].as_expr().subs(self.freevarsubs)
-            AU = zeros((len(allmonoms),len(allmonoms)))
-            AL = zeros((A.shape[0]-len(allmonoms),len(allmonoms)))
-            BU = zeros((len(allmonoms),1))
-            BL = zeros((A.shape[0]-len(allmonoms),1))
+            AU = sympyzeros((len(allmonoms),len(allmonoms)))
+            AL = sympyzeros((A.shape[0]-len(allmonoms),len(allmonoms)))
+            BU = sympyzeros((len(allmonoms),1))
+            BL = sympyzeros((A.shape[0]-len(allmonoms),1))
             AUadjugate = None
             AU = A[:A.shape[1],:]
             nummatrixsymbols = 0
@@ -4896,7 +4902,7 @@ class IKFastSolver(AutoReloader):
                 log.info('AU has symbols, so working with inverse might take some time')
                 AUdet = self.trigsimp(AUdet.subs(self.freevarsubsinv),self.freejointvars).subs(self.freevarsubs)
                 # find the adjugate by simplifying from the inverse
-                AUadjugate = zeros(AUinv.shape)
+                AUadjugate = sympyzeros(AUinv.shape)
                 sinsubs = []
                 for freevar in self.freejointvars:
                     var=self.Variable(freevar)
@@ -4955,7 +4961,7 @@ class IKFastSolver(AutoReloader):
                     preprocesssolutiontree.append(matrixsolution)
                     self.usinglapack = True
                     # evaluate the inverse at various solutions and see which entries are always zero
-                    isnotzero = zeros((AU.shape[0],AU.shape[1]))
+                    isnotzero = sympyzeros((AU.shape[0],AU.shape[1]))
                     epsilon = 1e-15
                     epsilondet = 1e-30
                     hasOneNonSingular = False
@@ -4982,7 +4988,7 @@ class IKFastSolver(AutoReloader):
                     if not hasOneNonSingular:
                         raise self.CannotSolveError('inverse matrix is always singular')
                     
-                    AUinv = zeros((AU.shape[0],AU.shape[1]))
+                    AUinv = sympyzeros((AU.shape[0],AU.shape[1]))
                     for i in range(AUinv.shape[0]):
                         for j in range(AUinv.shape[1]):
                             if isnotzero[i,j] == 0:
@@ -5637,10 +5643,10 @@ class IKFastSolver(AutoReloader):
                     log.info('success in solving sub-coeff matrix!')
                     shape=Mall[0].shape
                     Malltemp = [None]*len(Mall)
-                    M = zeros(shape)
+                    M = sympyzeros(shape)
                     dictequations2 = list(dictequations)
                     for idegree in range(len(Mall)):
-                        Malltemp[idegree] = zeros(shape)
+                        Malltemp[idegree] = sympyzeros(shape)
                         for i in range(shape[0]):
                             for j in range(shape[1]):
                                 if Mall[idegree][i,j] != S.Zero:
@@ -6211,7 +6217,7 @@ class IKFastSolver(AutoReloader):
         if len(allmonoms) == 0 or len(allmonoms)>2*len(dialyticeqs):
             raise self.CannotSolveError('solveDialytically: more unknowns than equations %d>%d'%(len(allmonoms), 2*len(dialyticeqs)))
         
-        Mall = [zeros((2*len(dialyticeqs),len(allmonoms))) for i in range(maxdegree+1)]
+        Mall = [sympyzeros((2*len(dialyticeqs),len(allmonoms))) for i in range(maxdegree+1)]
         Mallindices = [-ones((2*len(dialyticeqs),len(allmonoms))) for i in range(maxdegree+1)]
         exportcoeffeqs = [S.Zero]*(len(dialyticeqs)*len(origmonoms)*(maxdegree+1))
         for ipeq,peq in enumerate(dialyticeqs):
@@ -6286,7 +6292,7 @@ class IKFastSolver(AutoReloader):
                     for i in range(C.shape[0]):
                         for j in range(C.shape[1]):
                             C[i,j] = self._SubstituteGlobalSymbols(C[i,j]).subs(subs).evalf()
-                    A2 = zeros((B.shape[0],B.shape[0]*2))
+                    A2 = sympyzeros((B.shape[0],B.shape[0]*2))
                     for i in range(B.shape[0]):
                         A2[i,B.shape[0]+i] = S.One
                     A2=A2.col_join((-C).row_join(-B))
@@ -7782,7 +7788,7 @@ class IKFastSolver(AutoReloader):
                     possibilities = []
                     unusedindices = list(range(len(newpolyeqs2)))
                     for eqsindices in combinations(range(len(newpolyeqs2)),degree+1):
-                        Mall = zeros((degree+1,degree+1))
+                        Mall = sympyzeros((degree+1,degree+1))
                         totalcomplexity = 0
                         for i,eqindex in enumerate(eqsindices):
                             eq = newpolyeqs2[eqindex]
@@ -7893,9 +7899,9 @@ class IKFastSolver(AutoReloader):
                     shape=Mall[0].shape
                     assert(shape[0] == 4 and shape[1] == 4)
                     Malltemp = [None]*len(Mall)
-                    M = zeros(shape)
+                    M = sympyzeros(shape)
                     for idegree in range(len(Mall)):
-                        Malltemp[idegree] = zeros(shape)
+                        Malltemp[idegree] = sympyzeros(shape)
                         for i in range(shape[0]):
                             for j in range(shape[1]):
                                 if Mall[idegree][i,j] != S.Zero:
@@ -8211,7 +8217,7 @@ class IKFastSolver(AutoReloader):
                     break
                 coeffs.append(value)
                 # since coeffs[0] is normalized with the LC constant, can compare for precision
-                if len(coeffs) == 1 and Abs(coeffs[0]) < 2*(10.0**-self.precision):
+                if len(coeffs) == 1 and coeffs[0].is_number and Abs(coeffs[0]) < 2*(10.0**-self.precision):
                     coeffs = None
                     break
             if coeffs is None:
@@ -8746,8 +8752,8 @@ class IKFastSolver(AutoReloader):
         if len(systemofequations) >= 4:
             singleeqs = None
             for eqs in combinations(systemofequations,4):
-                M = zeros((4,4))
-                B = zeros((4,1))
+                M = sympyzeros((4,4))
+                B = sympyzeros((4,1))
                 for i,arr in enumerate(eqs):
                     for j in range(4):
                         M[i,j] = arr[j]
@@ -9439,7 +9445,7 @@ class IKFastSolver(AutoReloader):
         """
         n, m = self.rows, self.cols
         U, L, P = self[:,:], eye(n), eye(n)
-        DD = zeros(n) # store it smarter since it's just diagonal
+        DD = sympyzeros(n) # store it smarter since it's just diagonal
         oldpivot = S.One
 
         for k in range(n-1):
