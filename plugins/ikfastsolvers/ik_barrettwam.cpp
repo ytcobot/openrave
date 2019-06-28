@@ -392,6 +392,7 @@ eetrans[2]=((0.346)+((x18*x6))+((x11*((((x24*x53))+((x17*x4*x7))))))+(((-0.3)*x2
 
 IKFAST_API int GetNumFreeParameters() { return 1; }
 IKFAST_API int* GetFreeParameters() { static int freeparams[] = {2}; return freeparams; }
+IKFAST_API const int* GetFreeIndices() { static const int freeindices[] = {2}; return freeindices; }
 IKFAST_API int GetNumJoints() { return 7; }
 
 IKFAST_API int GetIkRealSize() { return sizeof(IkReal); }
@@ -20519,6 +20520,7 @@ IkSolverBasePtr CreateIkSolver(EnvironmentBasePtr penv, std::istream& sinput, co
     ikfunctions->_ComputeFk = IKFAST_NAMESPACE::ComputeFk;
     ikfunctions->_GetNumFreeParameters = IKFAST_NAMESPACE::GetNumFreeParameters;
     ikfunctions->_GetFreeParameters = IKFAST_NAMESPACE::GetFreeParameters;
+    ikfunctions->_GetFreeIndices = IKFAST_NAMESPACE::GetFreeIndices;
     ikfunctions->_GetNumJoints = IKFAST_NAMESPACE::GetNumJoints;
     ikfunctions->_GetIkRealSize = IKFAST_NAMESPACE::GetIkRealSize;
     ikfunctions->_GetIkFastVersion = IKFAST_NAMESPACE::GetIkFastVersion;

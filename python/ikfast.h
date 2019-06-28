@@ -120,7 +120,7 @@ template <typename T>
 class IkFastFunctions
 {
 public:
-    IkFastFunctions() : _ComputeIk(NULL), _ComputeIk2(NULL), _ComputeFk(NULL), _GetNumFreeParameters(NULL), _GetFreeParameters(NULL), _GetNumJoints(NULL), _GetIkRealSize(NULL), _GetIkFastVersion(NULL), _GetIkType(NULL), _GetKinematicsHash(NULL) {
+    IkFastFunctions() : _ComputeIk(NULL), _ComputeIk2(NULL), _ComputeFk(NULL), _GetNumFreeParameters(NULL), _GetFreeParameters(NULL), _GetFreeIndices(NULL), _GetNumJoints(NULL), _GetIkRealSize(NULL), _GetIkFastVersion(NULL), _GetIkType(NULL), _GetKinematicsHash(NULL) {
     }
     virtual ~IkFastFunctions() {
     }
@@ -134,6 +134,8 @@ public:
     GetNumFreeParametersFn _GetNumFreeParameters;
     typedef int* (*GetFreeParametersFn)();
     GetFreeParametersFn _GetFreeParameters;
+    typedef const int* (*GetFreeIndicesFn)();
+    GetFreeIndicesFn _GetFreeIndices;
     typedef int (*GetNumJointsFn)();
     GetNumJointsFn _GetNumJoints;
     typedef int (*GetIkRealSizeFn)();
@@ -317,6 +319,9 @@ IKFAST_API int GetNumFreeParameters();
 
 /// \brief the indices of the free parameters indexed by the chain joints
 IKFAST_API int* GetFreeParameters();
+
+/// \brief the indices of the free parameters indexed by the chain joints
+IKFAST_API const int* GetFreeIndices();
 
 /// \brief the total number of indices of the chain
 IKFAST_API int GetNumJoints();

@@ -53,6 +53,7 @@ public:
         _fFreeIncPrismaticNum = 10.0; // arbitrary
         for(size_t i = 0; i < _vfreeparams.size(); ++i) {
             _vfreeparams[i] = ikfunctions->_GetFreeParameters()[i];
+            // _vfreeparams[i] = ikfunctions->_GetFreeIndices()[i];
         }
         _nTotalDOF = ikfunctions->_GetNumJoints();
         _iktype = static_cast<IkParameterizationType>(ikfunctions->_GetIkType());
@@ -64,6 +65,8 @@ public:
                         "sets the allowed workspace error, if ik solver returns above that, then use jacobian inverse to refine.");
         RegisterCommand("SetDefaultIncrements",boost::bind(&IkFastSolver<IkReal>::_SetDefaultIncrementsCommand,this,_1,_2),
                         "Specify four values (2 pairs). Each pair is the free increment for revolute joint and second is the number of segment to divide free prismatic joints. The first pair is for structural free joints, the second pair is for solutions where axes align");
+        RegisterCommand("GetFreeParameters",boost::bind(&IkFastSolver<IkReal>::_GetFreeParametersCommand,this,_1,_2),
+                        "returns the free increments for all the free joints.");
         RegisterCommand("GetFreeIndices",boost::bind(&IkFastSolver<IkReal>::_GetFreeIndicesCommand,this,_1,_2),
                         "returns the free increments for all the free joints.");
         RegisterCommand("SetFreeIncrements",boost::bind(&IkFastSolver<IkReal>::_SetFreeIncrementsCommand,this,_1,_2),
@@ -149,6 +152,14 @@ for numBacktraceLinksForSelfCollisionWithNonMoving numBacktraceLinksForSelfColli
             sinput >> *it;
         }
         return !!sinput;
+    }
+
+    bool _GetFreeParametersCommand(ostream& sout, istream& sinput)
+    {
+        FOREACHC(it, _vfreeparams) {
+            sout << *it << " ";
+        }
+        return true;
     }
 
     bool _GetFreeIndicesCommand(ostream& sout, istream& sinput)
@@ -753,6 +764,13 @@ protected:
         }
         return true;
     }
+
+    virtual bool GetFreeIndices(std::vector<int>& vFreeIndices) const
+    {
+        vFreeIndices = _vfreeparams;
+        return true;
+    }
+
 
     virtual RobotBase::ManipulatorPtr GetManipulator() const {
         return RobotBase::ManipulatorPtr(_pmanip);

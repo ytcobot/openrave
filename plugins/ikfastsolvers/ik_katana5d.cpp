@@ -334,6 +334,7 @@ eerot[2]=((-1.0)*x9*((((x13*(((((-1.0)*x18))+x17))))+((x14*((x19+x20)))))));
 
 IKFAST_API int GetNumFreeParameters() { return 0; }
 IKFAST_API int* GetFreeParameters() { return NULL; }
+IKFAST_API const int* GetFreeIndices() { return NULL; }
 IKFAST_API int GetNumJoints() { return 5; }
 
 IKFAST_API int GetIkRealSize() { return sizeof(IkReal); }
@@ -5097,6 +5098,7 @@ IkSolverBasePtr CreateIkSolver(EnvironmentBasePtr penv, std::istream& sinput, co
     ikfunctions->_ComputeFk = IKFAST_NAMESPACE::ComputeFk;
     ikfunctions->_GetNumFreeParameters = IKFAST_NAMESPACE::GetNumFreeParameters;
     ikfunctions->_GetFreeParameters = IKFAST_NAMESPACE::GetFreeParameters;
+    ikfunctions->_GetFreeIndices = IKFAST_NAMESPACE::GetFreeIndices;
     ikfunctions->_GetNumJoints = IKFAST_NAMESPACE::GetNumJoints;
     ikfunctions->_GetIkRealSize = IKFAST_NAMESPACE::GetIkRealSize;
     ikfunctions->_GetIkFastVersion = IKFAST_NAMESPACE::GetIkFastVersion;

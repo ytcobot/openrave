@@ -192,6 +192,7 @@ public:
             LOAD_IKFUNCTION(ComputeFk);
             LOAD_IKFUNCTION(GetNumFreeParameters);
             LOAD_IKFUNCTION(GetFreeParameters);
+            LOAD_IKFUNCTION(GetFreeIndices);
             LOAD_IKFUNCTION(GetNumJoints);
             LOAD_IKFUNCTION(GetIkRealSize);
             LOAD_IKFUNCTION(GetIkFastVersion);
@@ -784,6 +785,7 @@ public:
             }
             for(size_t j = 0; j < vfree.size(); ++j) {
                 vfree[j] = vjoints[ikfunctions->_GetFreeParameters()[j]];
+                // vfree[j] = vjoints[ikfunctions->_GetFreeIndices()[j]];
             }
             ikfunctions->_ComputeFk(&vjoints[0],eetrans,eerot);
             solutions.Clear();
